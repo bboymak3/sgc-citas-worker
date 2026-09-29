@@ -1,0 +1,12 @@
+# Copia este archivo a .dev.vars y completa con tus valores para desarrollo local
+# NUNCA subas .dev.vars a git (ya está en .gitignore)
+
+# Secrets (valores reales - no commitear)
+EVOLUTION_API_KEY=tu-clave-de-evolution-api-aqui
+
+# Variables públicas (estas sí se commitean en wrangler.toml)
+BUSINESS_NAME=SGC
+BUSINESS_PHONE=56939026185
+SGCORDENES_URL=https://sgc-ordenes-di7.pages.dev
+EVOLUTION_API_URL=https://evolution-api-production-91a07.up.railway.app
+EVOLUTION_INSTANCE_NAME=make peueba
