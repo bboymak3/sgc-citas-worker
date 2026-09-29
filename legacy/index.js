@@ -1011,7 +1011,7 @@ async function consultarVehiculoEnTaller(env2, patente) {
   try {
     const pat = patente.toUpperCase().trim();
     const vehiculo = await env2.TALLER_DB.prepare(
-      "SELECT v.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono, c.rut as cliente_rut FROM sgc_ord_Vehiculos v LEFT JOIN Clientes c ON v.cliente_id = c.id WHERE UPPER(v.patente_placa) = ? LIMIT 1"
+      "SELECT v.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono, c.rut as cliente_rut FROM sgc_ord_Vehiculos v LEFT JOIN sgc_ord_Clientes c ON v.cliente_id = c.id WHERE UPPER(v.patente_placa) = ? LIMIT 1"
     ).bind(pat).first();
     if (!vehiculo) {
       return { success: false, error: "Veh\xEDculo no encontrado en nuestra base de datos" };
@@ -1445,7 +1445,7 @@ var index_default = {
         const ordenResult = await enviarOrdenAGlobalprov2(env2, cita, vehiculoResult.vehiculo);
         const numOrden = ordenResult.numero_orden ? String(ordenResult.numero_orden) : null;
         await env2.DB.prepare(
-          "UPDATE sgc_cit_Citas SET orden_enviada = ?, numero_orden_globalprov2 = ?, updated_at = datetime('now') WHERE id = ?"
+          "UPDATE sgc_cit_Citas SET orden_enviada = ?, numero_orden_sgc = ?, updated_at = datetime('now') WHERE id = ?"
         ).bind(ordenResult.success ? 1 : 0, numOrden, citaId).run();
         return new Response(JSON.stringify({
           success: true,
@@ -1579,14 +1579,14 @@ var index_default = {
         ).bind(id).run();
         const cita = await env2.DB.prepare("SELECT * FROM sgc_cit_Citas WHERE id = ?").bind(id).first();
         let ordenCreada = false;
-        if (cita && !cita.numero_orden_globalprov2) {
+        if (cita && !cita.numero_orden_sgc) {
           console.log("Cita sin OT, creando orden en Globalprov2 para cita:", id);
           const vehiculoData = await consultarVehiculoEnTaller(env2, cita.patente);
           const ordenResult = await enviarOrdenAGlobalprov2(env2, cita, vehiculoData.vehiculo);
           if (ordenResult.success) {
             const numOrden = ordenResult.numero_orden ? String(ordenResult.numero_orden) : null;
             await env2.DB.prepare(
-              "UPDATE sgc_cit_Citas SET orden_enviada = 1, numero_orden_globalprov2 = ?, updated_at = datetime('now') WHERE id = ?"
+              "UPDATE sgc_cit_Citas SET orden_enviada = 1, numero_orden_sgc = ?, updated_at = datetime('now') WHERE id = ?"
             ).bind(numOrden, id).run();
             ordenCreada = true;
             console.log("Orden creada al aprobar cita:", id, "-> OT:", numOrden);
@@ -1597,7 +1597,7 @@ var index_default = {
         if (cita && cita.telefono) {
           const tipoAtencion = cita.tipo_atencion === "domicilio" ? "a Domicilio" : "en Taller";
           const otLine = ordenCreada ? `
-\u{1F4CB} Orden de Trabajo: EXP${String(cita.numero_orden_globalprov2 || "").padStart(6, "0")}` : "";
+\u{1F4CB} Orden de Trabajo: EXP${String(cita.numero_orden_sgc || "").padStart(6, "0")}` : "";
           const msg = `\u2705 *Su cita ha sido APROBADA*
 
 \u{1F527} Servicio: ${cita.servicio}

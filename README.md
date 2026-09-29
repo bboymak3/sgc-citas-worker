@@ -259,3 +259,21 @@ El plan free de Workers AI entrega **10.000 neuronas/día**. Este worker está a
 ## 📄 Licencia
 
 Propietario — **SGC**. Todos los derechos reservados.
+
+---
+
+## Estado (2026-09-29): LEGACY — usar `sgc-saas`
+
+Este worker quedó reemplazado por `sgc-saas` (multi-tenant). Mientras siga desplegado, `src/index.js` agrega una capa de seguridad
+delante del código original (`legacy/index.js`):
+
+- `/api/whatsapp/webhook` exige `WEBHOOK_SECRET` (`?k=` o header `X-Webhook-Secret`); antes cualquiera podía hacer que el bot
+  enviara mensajes.
+- `/api/admin/*`, `/api/citas-admin*`, `/api/citas/stats|rango`, `/api/consultar-*` exigen `Authorization: Bearer <ADMIN_TOKEN>`.
+- `/api/migrate` deshabilitado. Errores 500 sin detalles internos.
+- Correcciones: `numero_orden_globalprov2` (columna inexistente) → `numero_orden_sgc`; JOIN a `Clientes` → `sgc_ord_Clientes`.
+
+**Recomendación:** tras desplegar `sgc-saas` y ejecutar el comando `SYNC` (que apunta la instancia de Evolution al worker nuevo),
+este worker ya no recibe tráfico y se puede eliminar.
+
+Pruebas: `npm test`.
